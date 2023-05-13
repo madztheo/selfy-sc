@@ -2,26 +2,53 @@
 pragma solidity ^0.8.17;
 
 import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@sismo-core/sismo-connect-solidity/contracts/libs/SismoLib.sol";
-import "./interfaces/ISelfyProfile.sol";
+import {SismoConnect, SismoConnectHelper, SismoConnectVerifiedResult, AuthType} from "@sismo-core/sismo-connect-solidity/contracts/libs/SismoLib.sol";
+import {ISelfyProfile} from "./interfaces/ISelfyProfile.sol";
 
-contract SelfyBadge is Ownable, ERC1155, SismoConnect {
+// TODO : Optimize because error of Contract too large
+contract SelfyBadge is ERC1155, SismoConnect {
     using SismoConnectHelper for SismoConnectVerifiedResult;
 
-    bytes16 public sismoAppId = 0x9b8f95f5e9e1d14857fea5bc2f8e9337;
-    // Token id => commitment => has claimed
-    mapping(uint256 => mapping(uint256 => bool)) public hasClaimed;
+    bytes16 internal sismoAppId = 0x9b8f95f5e9e1d14857fea5bc2f8e9337;
+    // TokenId => Has claimed
+    mapping(uint256 => bool) internal hasClaimed;
     // TokenId => URI
-    mapping(uint256 => string) public tokenUris;
+    mapping(uint256 => string) internal tokenUris;
 
-    ISelfyProfile public selfyProfile;
+    ISelfyProfile internal selfyProfile;
 
-    constructor(address _selfyProfile) ERC1155("") SismoConnect(sismoAppId) {
-        selfyProfile = ISelfyProfile(_selfyProfile);
+    address private _owner;
+
+    // Error
+    error BadgeAlreadyClaimed();
+    error TokenNotTransferable();
+    error NotOwner();
+
+    // Event
+    event BadgeBurn(address indexed _user, uint256 _tokenId);
+    event OwnershipTransferred(address indexed newOwner);
+
+    // Modifier
+    modifier onlyOwner() {
+        if (_owner != _msgSender()) revert NotOwner();
+        _;
     }
 
-    function claimWithSismo(bytes memory response, bytes16 groupId) public {
+    /*
+     * @notice Transfer the ownership of the contract
+     * @param newOwner The new owner
+     */
+    constructor(address _selfyProfile) ERC1155("") SismoConnect(sismoAppId) {
+        selfyProfile = ISelfyProfile(_selfyProfile);
+        _owner = msg.sender;
+    }
+
+    /**
+     * @notice Claim your badge with Sismo
+     * @param response The response from Sismo
+     * @param groupId The group id of the badge
+     */
+    function claimWithSismo(bytes memory response, bytes16 groupId) external {
         // Convert the address to bytes
         bytes memory message = bytes.concat(bytes20(msg.sender));
 
@@ -41,35 +68,34 @@ contract SelfyBadge is Ownable, ERC1155, SismoConnect {
             result,
             AuthType.VAULT
         );
-        uint256 tokenId = getTokenIdFromGroupId(groupId);
+        uint256 _tokenId = uint256(bytes32(groupId));
         // Check that the user has not already claimed the badge
-        require(!hasClaimed[tokenId][commitment], "Badge already claimed");
+        if (hasClaimed[tokenId][commitment]) revert BadgeAlreadyClaimed();
         // Mark the badge as claimed
         hasClaimed[tokenId][commitment] = true;
         // The tokenId is the groupId
         // Mint the badge
-        _mint(msg.sender, tokenId, 1, "");
+        _mint(msg.sender, _tokenId, 1, "");
 
         // Evolve the profile
-        uint256 profileTokenId = selfyProfile.getTokenId(msg.sender);
-        selfyProfile.evolve(profileTokenId, tokenId, 100);
+        selfyProfile.evolve(_tokenId, 100);
     }
 
-    /*
-        @notice Get the token uri
-        @param tokenId : The token id
-    */
+    /**
+     * @notice Get the token uri
+     * @param tokenId : The token id
+     */
     function tokenURI(
         uint256 tokenId
-    ) public view virtual returns (string memory) {
+    ) external view virtual returns (string memory) {
         return tokenUris[tokenId];
     }
 
-    /*
-        @notice Set the token uri
-        @param tokenId : The token id
-        @param newuri : The new uri
-    */
+    /**
+     * @notice Set the token uri
+     * @param tokenId : The token id
+     * @param newuri : The new uri
+     */
     function setURI(uint256 tokenId, string memory newuri) external onlyOwner {
         tokenUris[tokenId] = newuri;
     }
@@ -78,12 +104,15 @@ contract SelfyBadge is Ownable, ERC1155, SismoConnect {
         sismoAppId = _appId;
     }
 
-    function getTokenIdFromGroupId(
-        bytes16 groupId
-    ) public pure returns (uint256) {
-        return uint256(bytes32(groupId));
-    }
-
+    /**
+     * @notice Hook before token transfer
+     * @param operator : The operator
+     * @param from : The sender
+     * @param to : The receiver
+     * @param ids : The token ids
+     * @param amounts : The token amounts
+     * @param data : The data
+     */
     function _beforeTokenTransfer(
         address operator,
         address from,
@@ -93,6 +122,16 @@ contract SelfyBadge is Ownable, ERC1155, SismoConnect {
         bytes memory data
     ) internal override(ERC1155) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-        require(from == address(0), "Tokens are not transferrable");
+        // Prevent transfer but let user burn its badge
+        if (to != address(0)) revert TokenNotTransferable();
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        _owner = newOwner;
+        emit OwnershipTransferred(newOwner);
     }
 }

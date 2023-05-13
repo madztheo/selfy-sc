@@ -36,9 +36,11 @@ contract SelfyProfile is ERC721, AccessControl {
     mapping(uint256 => uint256) public badgeIdToTraits;
     // Address => Number of evolution
     mapping(address => uint256) public evolutionCount;
-
     //owner => token id
     mapping(address => uint256) public ownerToTokenId;
+
+    // Base URI
+    string private baseURI = 'https://noun-api.com/beta/pfp?head=';
 
     // Error
     error RegularERC721SafeTransferFromAreNotAllowed();
@@ -77,7 +79,9 @@ contract SelfyProfile is ERC721, AccessControl {
         @notice Update the token uri, used for example when the token is finalized
         @param _tokenURI : The token id owner
     */
-    function evolve(uint256 tokenId, uint256 badgeId, uint256 _nbTokenPayement) public payable onlyRole(MINTER_ROLE)  {
+    function evolve(uint256 badgeId, uint256 _nbTokenPayement) public payable onlyRole(MINTER_ROLE)  {
+        uint256 tokenId = this.getTokenId(tx.origin);
+        require(tokenId != 0, "SelfyProfile: You don't have a SelfyProfile");
         require(_exists(tokenId), "SelfyProfile: URI set for nonexistent token");
         require(evolutionCount[msg.sender] < 3 && _nbTokenPayement > 100, "SelfyProfile: You can't evolve more than 3 times");
 
@@ -95,7 +99,7 @@ contract SelfyProfile is ERC721, AccessControl {
         }
 
         tokenUris[tokenId] = string(abi.encodePacked(
-            'https://noun-api.com/beta/pfp?head=', head[tokenId],
+            baseURI, head[tokenId],
             '&background=',background[tokenId],
             '&body=',body[tokenId],
             '&accessory=',accessory[tokenId],
@@ -146,5 +150,10 @@ contract SelfyProfile is ERC721, AccessControl {
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
         return ERC721.supportsInterface(interfaceId) ||  AccessControl.supportsInterface(interfaceId) ;
+    }
+
+    // Update the BaseUri
+    function setBaseURI(string memory baseURI_) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        baseURI = baseURI_;
     }
 }
