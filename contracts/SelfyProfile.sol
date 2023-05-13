@@ -85,13 +85,13 @@ contract SelfyProfile is ERC721, AccessControl {
 
         // Increment the trait corresponding to a badge
         if (badgeIdToTraits[badgeId] == 0) {
-            head[tokenId] = (head[tokenId] + block.timestamp + block.number + _tokenIdCounter.current()) % MAX_HEAD;
-        } else if (badgeIdToTraits[badgeId] == 1 && body[tokenId] < MAX_BODY) {
-            body[tokenId] = (body[tokenId] + block.timestamp + block.number + _tokenIdCounter.current()) % MAX_BODY;
-        } else if (badgeIdToTraits[badgeId] == 2 && accessory[tokenId] < MAX_ACCESSORY) {
-            accessory[tokenId] = (accessory[tokenId] + block.timestamp + block.number + _tokenIdCounter.current()) % MAX_ACCESSORY;
-        } else if (badgeIdToTraits[badgeId] == 3 && background[tokenId] < MAX_BACKGROUND) {
-            glasses[tokenId] = (glasses[tokenId] + block.timestamp + block.number + _tokenIdCounter.current()) % MAX_GLASSES;
+            head[tokenId] = getTraits(head[tokenId], MAX_HEAD);
+        } else if (badgeIdToTraits[badgeId] == 1) {
+            body[tokenId] =  getTraits(body[tokenId], MAX_BODY);
+        } else if (badgeIdToTraits[badgeId] == 2) {
+            accessory[tokenId] = getTraits(accessory[tokenId],MAX_ACCESSORY);
+        } else if (badgeIdToTraits[badgeId] == 3) {
+            glasses[tokenId] = getTraits(glasses[tokenId], MAX_GLASSES);
         }
 
         tokenUris[tokenId] = string(abi.encodePacked(
@@ -105,6 +105,15 @@ contract SelfyProfile is ERC721, AccessControl {
         emit MetadataUpdate(tokenId); // To be compatible with the EIP-4906 : https://docs.opensea.io/docs/metadata-standards
     }
 
+    /*
+        @notice Return the new traits
+        @param _tokenURI : The actual traits id
+        @param maxTraits : The max traits number
+    */
+    function getTraits(uint256 actualTokenId ,uint256 maxTraits) internal view returns(uint256) {
+        return actualTokenId + block.timestamp + block.number + _tokenIdCounter.current() % maxTraits;
+
+    }
     //Update the mapping badgeIdToTraits
     function updateBadgeIdToTraits(uint256 badgeId, uint256 traits) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         badgeIdToTraits[badgeId] = traits;
