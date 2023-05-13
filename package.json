@@ -16,6 +16,7 @@
     "@openzeppelin/contracts": "^4.8.3",
     "@sismo-core/sismo-connect-solidity": "^0.0.7",
     "dotenv": "^16.0.3",
+    "hardhat-contract-sizer": "^2.8.0",
     "web3": "^1.10.0"
   }
 }
