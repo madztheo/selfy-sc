@@ -9,7 +9,8 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 contract SelfySnapshot is ERC1155, AccessControl, ERC1155Burnable, ERC1155Supply {
     bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-
+    
+    uint256 public constant mintPrice = 0.01 ether;
     constructor() ERC1155("ipfs://") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(URI_SETTER_ROLE, msg.sender);
@@ -20,18 +21,23 @@ contract SelfySnapshot is ERC1155, AccessControl, ERC1155Burnable, ERC1155Supply
         _setURI(newuri);
     }
 
-    function mint(address account, uint256 id, uint256 amount, bytes memory data)
-        public
-        onlyRole(MINTER_ROLE)
+    function mint(uint256 id, uint256 amount, bytes memory data)
+        payable public
     {
-        _mint(account, id, amount, data);
+        require(msg.value >= (amount * mintPrice), "Not enough ether sent");
+        _mint(msg.sender, id, amount, data);
     }
 
-    function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
-        public
-        onlyRole(MINTER_ROLE)
+    function mintBatch(uint256[] memory ids, uint256[] memory amounts, bytes memory data)
+        payable public
     {
-        _mintBatch(to, ids, amounts, data);
+        require(ids.length == amounts.length, "Invalid input arrays");
+        uint256 totalAmount = 0;
+        for (uint256 i = 0; i < amounts.length; i+=1) {
+            totalAmount += amounts[i];
+        }
+        require(msg.value >= (totalAmount * mintPrice), "Not enough ether sent");
+        _mintBatch(msg.sender, ids, amounts, data);
     }
 
     // The following functions are overrides required by Solidity.
