@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@sismo-core/sismo-connect-solidity/contracts/libs/SismoLib.sol";
+import "./interfaces/ISelfyProfile.sol";
 
 contract SelfyBadge is Ownable, ERC1155, SismoConnect {
     using SismoConnectHelper for SismoConnectVerifiedResult;
@@ -13,9 +14,13 @@ contract SelfyBadge is Ownable, ERC1155, SismoConnect {
     bytes16 public sismoAppId = 0x9b8f95f5e9e1d14857fea5bc2f8e9337;
     mapping(uint256 => bool) public hasClaimed;
 
-    constructor() ERC1155("") SismoConnect(sismoAppId) {}
+    ISelfyProfile public selfyProfile;
 
-    function claimWithSismo(bytes memory response, bytes16 groupId) public {
+    constructor(address _selfyProfile) ERC1155("") SismoConnect(sismoAppId) {
+        selfyProfile = ISelfyProfile(_selfyProfile);
+    }
+
+    function claimWithSismo(bytes memory response, bytes16 groupId) public payable{
         SismoConnectVerifiedResult memory result = verify({
             responseBytes: response,
             auth: buildAuth({authType: AuthType.VAULT}),
@@ -34,6 +39,10 @@ contract SelfyBadge is Ownable, ERC1155, SismoConnect {
         // The tokenId is the groupId
         uint256 tokenId = getTokenIdFromGroupId(groupId);
         _mint(msg.sender, tokenId, 1, "");
+
+        // Evolve the profile
+        uint256 profileTokenId = selfyProfile.getTokenId(msg.sender);
+        selfyProfile.evolve(profileTokenId, tokenId, 100);
     }
 
     function setURI(string memory newuri) external onlyOwner {
