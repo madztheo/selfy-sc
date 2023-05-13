@@ -13,6 +13,8 @@ contract SelfyBadge is Ownable, ERC1155, SismoConnect {
 
     bytes16 public sismoAppId = 0x9b8f95f5e9e1d14857fea5bc2f8e9337;
     mapping(uint256 => bool) public hasClaimed;
+    // TokenId => URI
+    mapping(uint256 => string) public tokenUris;
 
     ISelfyProfile public selfyProfile;
 
@@ -54,8 +56,21 @@ contract SelfyBadge is Ownable, ERC1155, SismoConnect {
         selfyProfile.evolve(profileTokenId, tokenId, 100);
     }
 
-    function setURI(string memory newuri) external onlyOwner {
-        _setURI(newuri);
+    /*
+        @notice Get the token uri
+        @param tokenId : The token id
+    */
+    function tokenURI(uint256 tokenId) public view virtual override(ERC1155) returns (string memory) {
+        return tokenUris[tokenId];
+    }
+
+    /*
+        @notice Set the token uri
+        @param tokenId : The token id
+        @param newuri : The new uri
+    */
+    function setURI(uint256 tokenId, string memory newuri) external onlyOwner {
+        tokenUris[tokenId] = newuri;
     }
 
     function setAppId(bytes16 _appId) external onlyOwner {
