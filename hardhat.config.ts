@@ -10,11 +10,15 @@ const config: HardhatUserConfig = {
       chainId: 1337,
       // Fork mumbai testnet
       forking: {
-        url: "https://rpc.ankr.com/polygon_mumbai",
+        url: process.env.RPC_URL || "",
       },
     },
     goerli: {
-      url: "https://rpc.ankr.com/eth_goerli",
+      url: process.env.RPC_URL,
+      accounts: [process.env.PRIVATE_KEY || ""],
+    },
+    sepolia: {
+      url: process.env.RPC_URL,
       accounts: [process.env.PRIVATE_KEY || ""],
     },
   },
