@@ -78,7 +78,7 @@ contract SelfyBadge is ERC1155, SismoConnect {
         _mint(msg.sender, _tokenId, 1, "");
 
         // Evolve the profile
-        selfyProfile.evolve(_tokenId, 100);
+        selfyProfile.evolve(_tokenId);
     }
 
     /**

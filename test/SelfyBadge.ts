@@ -29,7 +29,6 @@ describe("Selfy Test", function () {
         "SelfyProfile", // Name
         "SP", // Symbol
         futureSelfyBadgeAddress, // SelfyBadge Address
-        GHO_TOKEN_ADDRESS // Gho Token Address
     );
 
     // Deploy Contract SelfyBadge with Parameters
