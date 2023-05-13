@@ -2,6 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
@@ -84,13 +85,13 @@ contract SelfyProfile is ERC721, AccessControl {
 
         // Increment the trait corresponding to a badge
         if (badgeIdToTraits[badgeId] == 0) {
-            head[tokenId] = (head[tokenId] + 1) < MAX_HEAD ? head[tokenId] + 1 : 0;
+            head[tokenId] = (head[tokenId] + block.timestamp + block.number + _tokenIdCounter.current()) % MAX_HEAD;
         } else if (badgeIdToTraits[badgeId] == 1 && body[tokenId] < MAX_BODY) {
-            body[tokenId] = (body[tokenId] + 1) < MAX_BODY ? body[tokenId] + 1 : 0;
+            body[tokenId] = (body[tokenId] + block.timestamp + block.number + _tokenIdCounter.current()) % MAX_BODY;
         } else if (badgeIdToTraits[badgeId] == 2 && accessory[tokenId] < MAX_ACCESSORY) {
-            accessory[tokenId] = (accessory[tokenId] + 1) < MAX_ACCESSORY ? accessory[tokenId] + 1 : 0;
+            accessory[tokenId] = (accessory[tokenId] + block.timestamp + block.number + _tokenIdCounter.current()) % MAX_ACCESSORY;
         } else if (badgeIdToTraits[badgeId] == 3 && background[tokenId] < MAX_BACKGROUND) {
-            glasses[tokenId] = (glasses[tokenId] + 1) < MAX_GLASSES ? glasses[tokenId] + 1 : 0;
+            glasses[tokenId] = (glasses[tokenId] + block.timestamp + block.number + _tokenIdCounter.current()) % MAX_GLASSES;
         }
 
         tokenUris[tokenId] = string(abi.encodePacked(
