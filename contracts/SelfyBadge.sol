@@ -6,38 +6,71 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@sismo-core/sismo-connect-solidity/contracts/libs/SismoLib.sol";
+import "./interfaces/ISelfyProfile.sol";
 
 contract SelfyBadge is Ownable, ERC1155, SismoConnect {
     using SismoConnectHelper for SismoConnectVerifiedResult;
 
     bytes16 public sismoAppId = 0x9b8f95f5e9e1d14857fea5bc2f8e9337;
     mapping(uint256 => bool) public hasClaimed;
+    // TokenId => URI
+    mapping(uint256 => string) public tokenUris;
 
-    constructor() ERC1155("") SismoConnect(sismoAppId) {}
+    ISelfyProfile public selfyProfile;
+
+    constructor(address _selfyProfile) ERC1155("") SismoConnect(sismoAppId) {
+        selfyProfile = ISelfyProfile(_selfyProfile);
+    }
 
     function claimWithSismo(bytes memory response, bytes16 groupId) public {
+        // Convert the address to bytes
+        bytes memory message = bytes.concat(bytes20(msg.sender));
+
+        // Verify the Sismo response
         SismoConnectVerifiedResult memory result = verify({
             responseBytes: response,
             auth: buildAuth({authType: AuthType.VAULT}),
             // Check the user belongs to the requested group
             claim: buildClaim({groupId: groupId}),
             // Check that the user allowed the sender to receive the badge
-            signature: buildSignature({message: abi.encode(msg.sender)})
+            signature: buildSignature({message: message})
         });
 
-        uint256 commitement = SismoConnectHelper.getUserId(
+        // Compute a commitment from the result to prevent double mint
+        // from the same vault
+        uint256 commitment = SismoConnectHelper.getUserId(
             result,
             AuthType.VAULT
         );
-        require(!hasClaimed[commitement], "Badge already claimed");
-        hasClaimed[commitement] = true;
+        // Check that the user has not already claimed the badge
+        require(!hasClaimed[commitment], "Badge already claimed");
+        // Mark the badge as claimed
+        hasClaimed[commitment] = true;
         // The tokenId is the groupId
         uint256 tokenId = getTokenIdFromGroupId(groupId);
+        // Mint the badge
         _mint(msg.sender, tokenId, 1, "");
+
+        // Evolve the profile
+        uint256 profileTokenId = selfyProfile.getTokenId(msg.sender);
+        selfyProfile.evolve(profileTokenId, tokenId, 100);
     }
 
-    function setURI(string memory newuri) external onlyOwner {
-        _setURI(newuri);
+    /*
+        @notice Get the token uri
+        @param tokenId : The token id
+    */
+    function tokenURI(uint256 tokenId) public view virtual override(ERC1155) returns (string memory) {
+        return tokenUris[tokenId];
+    }
+
+    /*
+        @notice Set the token uri
+        @param tokenId : The token id
+        @param newuri : The new uri
+    */
+    function setURI(uint256 tokenId, string memory newuri) external onlyOwner {
+        tokenUris[tokenId] = newuri;
     }
 
     function setAppId(bytes16 _appId) external onlyOwner {
