@@ -47,10 +47,15 @@ contract SelfyBadge is ERC1155, SismoConnect {
      * @notice Claim your badge with Sismo
      * @param response The response from Sismo
      * @param groupId The group id of the badge
+     * @param recipient The recipient of the badge
      */
-    function claimWithSismo(bytes memory response, bytes16 groupId) external {
+    function claimWithSismo(
+        bytes memory response,
+        bytes16 groupId,
+        address recipient
+    ) external {
         // Convert the address to bytes
-        bytes memory message = bytes.concat(bytes20(msg.sender));
+        bytes memory message = bytes.concat(bytes20(recipient));
 
         // Verify the Sismo response
         SismoConnectVerifiedResult memory result = verify({
@@ -75,7 +80,7 @@ contract SelfyBadge is ERC1155, SismoConnect {
         hasClaimed[_tokenId][commitment] = true;
         // The tokenId is the groupId
         // Mint the badge
-        _mint(msg.sender, _tokenId, 1, "");
+        _mint(recipient, _tokenId, 1, "");
 
         // Evolve the profile
         selfyProfile.evolve(_tokenId, 100);
@@ -122,8 +127,8 @@ contract SelfyBadge is ERC1155, SismoConnect {
         bytes memory data
     ) internal override(ERC1155) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
-        // Prevent transfer but let user burn its badge
-        if (to != address(0)) revert TokenNotTransferable();
+        // Prevent transfer except mints
+        if (from != address(0)) revert TokenNotTransferable();
     }
 
     /**
