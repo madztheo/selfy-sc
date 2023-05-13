@@ -10,8 +10,8 @@ contract SelfyBadge is ERC1155, SismoConnect {
     using SismoConnectHelper for SismoConnectVerifiedResult;
 
     bytes16 internal sismoAppId = 0x9b8f95f5e9e1d14857fea5bc2f8e9337;
-    // TokenId => Has claimed
-    mapping(uint256 => bool) internal hasClaimed;
+    // TokenId => commitment => Has claimed
+    mapping(uint256 => mapping(uint256 => bool)) internal hasClaimed;
     // TokenId => URI
     mapping(uint256 => string) internal tokenUris;
 
@@ -70,9 +70,9 @@ contract SelfyBadge is ERC1155, SismoConnect {
         );
         uint256 _tokenId = uint256(bytes32(groupId));
         // Check that the user has not already claimed the badge
-        if (hasClaimed[tokenId][commitment]) revert BadgeAlreadyClaimed();
+        if (hasClaimed[_tokenId][commitment]) revert BadgeAlreadyClaimed();
         // Mark the badge as claimed
-        hasClaimed[tokenId][commitment] = true;
+        hasClaimed[_tokenId][commitment] = true;
         // The tokenId is the groupId
         // Mint the badge
         _mint(msg.sender, _tokenId, 1, "");
