@@ -20,7 +20,6 @@ async function main() {
     "SelfyProfile", // Name
     "SP", // Symbol
     futureAddress, // SelfyBadge Address
-    ethers.utils.getAddress("0xcbE9771eD31e761b744D3cB9eF78A1f32DD99211") // Gho Token Address
   );
 
   const SelfyBadge = await ethers.getContractFactory("SelfyBadge");
