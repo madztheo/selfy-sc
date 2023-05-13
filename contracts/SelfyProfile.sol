@@ -13,12 +13,11 @@ contract SelfyProfile is ERC721, AccessControl {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-
     // TokenId => URI
     mapping(uint256 => string) public tokenUris;
     // TokenId => Background number
     mapping(uint256 => uint256) public background;
-    uint256 public constant  MAX_BACKGROUND = 2;
+    uint256 public constant MAX_BACKGROUND = 2;
     // TokenId => Body number
     mapping(uint256 => uint256) public body;
     uint256 public constant MAX_BODY = 29;
@@ -39,7 +38,7 @@ contract SelfyProfile is ERC721, AccessControl {
     mapping(address => uint256) public ownerToTokenId;
 
     // Base URI
-    string private baseURI = 'https://noun-api.com/beta/pfp?head=';
+    string private baseURI = "https://noun-api.com/beta/pfp?head=";
 
     // Error
     error RegularERC721SafeTransferFromAreNotAllowed();
@@ -53,15 +52,18 @@ contract SelfyProfile is ERC721, AccessControl {
         string memory name,
         string memory symbol,
         address _selfyPerksContract
-    ) ERC721(name, symbol){
+    ) ERC721(name, symbol) {
         _setupRole(MINTER_ROLE, _selfyPerksContract);
     }
 
     /*
         @notice Creation of a SelfyProfile
      */
-    function createSelfyProfile() public {
-        require(balanceOf(msg.sender) == 0, "SelfyProfile: You already have a SelfyProfile");
+    function createSelfyProfile(address recipient) public {
+        require(
+            balanceOf(recipient) == 0,
+            "SelfyProfile: You already have a SelfyProfile"
+        );
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         background[tokenId] = 0;
@@ -69,38 +71,50 @@ contract SelfyProfile is ERC721, AccessControl {
         accessory[tokenId] = 100;
         head[tokenId] = 0;
         glasses[tokenId] = 7;
-        ownerToTokenId[msg.sender] = tokenId;
-        _safeMint(msg.sender, tokenId);
+        ownerToTokenId[recipient] = tokenId;
+        _safeMint(recipient, tokenId);
     }
 
     /*
         @notice Update the token uri, used for example when the token is finalized
         @param _tokenURI : The token id owner
     */
-    function evolve(uint256 badgeId) public onlyRole(MINTER_ROLE)  {
-        uint256 tokenId = this.getTokenId(tx.origin);
+    function evolve(
+        uint256 badgeId,
+        address recipient
+    ) public onlyRole(MINTER_ROLE) {
+        uint256 tokenId = this.getTokenId(recipient);
         require(tokenId != 0, "SelfyProfile: You don't have a SelfyProfile");
-        require(_exists(tokenId), "SelfyProfile: URI set for nonexistent token");
-
+        require(
+            _exists(tokenId),
+            "SelfyProfile: URI set for nonexistent token"
+        );
 
         // Increment the trait corresponding to a badge
         if (badgeIdToTraits[badgeId] == 0) {
             head[tokenId] = getTraits(head[tokenId], MAX_HEAD);
         } else if (badgeIdToTraits[badgeId] == 1) {
-            body[tokenId] =  getTraits(body[tokenId], MAX_BODY);
+            body[tokenId] = getTraits(body[tokenId], MAX_BODY);
         } else if (badgeIdToTraits[badgeId] == 2) {
-            accessory[tokenId] = getTraits(accessory[tokenId],MAX_ACCESSORY);
+            accessory[tokenId] = getTraits(accessory[tokenId], MAX_ACCESSORY);
         } else if (badgeIdToTraits[badgeId] == 3) {
             glasses[tokenId] = getTraits(glasses[tokenId], MAX_GLASSES);
         }
 
-        tokenUris[tokenId] = string(abi.encodePacked(
-            baseURI, head[tokenId],
-            '&background=',background[tokenId],
-            '&body=',body[tokenId],
-            '&accessory=',accessory[tokenId],
-            '&glasses=',glasses[tokenId]
-        ));
+        tokenUris[tokenId] = string(
+            abi.encodePacked(
+                baseURI,
+                head[tokenId],
+                "&background=",
+                background[tokenId],
+                "&body=",
+                body[tokenId],
+                "&accessory=",
+                accessory[tokenId],
+                "&glasses=",
+                glasses[tokenId]
+            )
+        );
 
         emit MetadataUpdate(tokenId); // To be compatible with the EIP-4906 : https://docs.opensea.io/docs/metadata-standards
     }
@@ -110,17 +124,27 @@ contract SelfyProfile is ERC721, AccessControl {
         @param _tokenURI : The actual traits id
         @param maxTraits : The max traits number
     */
-    function getTraits(uint256 actualTokenId ,uint256 maxTraits) internal view returns(uint256) {
-        return actualTokenId + block.timestamp + block.number + _tokenIdCounter.current() % maxTraits;
-
+    function getTraits(
+        uint256 actualTokenId,
+        uint256 maxTraits
+    ) internal view returns (uint256) {
+        return
+            actualTokenId +
+            block.timestamp +
+            block.number +
+            (_tokenIdCounter.current() % maxTraits);
     }
+
     //Update the mapping badgeIdToTraits
-    function updateBadgeIdToTraits(uint256 badgeId, uint256 traits) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+    function updateBadgeIdToTraits(
+        uint256 badgeId,
+        uint256 traits
+    ) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         badgeIdToTraits[badgeId] = traits;
     }
 
     // Get token id for an owner
-    function getTokenId(address owner) external view returns(uint256) {
+    function getTokenId(address owner) external view returns (uint256) {
         return ownerToTokenId[owner];
     }
 
@@ -128,7 +152,9 @@ contract SelfyProfile is ERC721, AccessControl {
         @notice Get the token uri
         @param tokenId : The token id
     */
-    function tokenURI(uint256 tokenId) public view virtual override(ERC721) returns (string memory) {
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override(ERC721) returns (string memory) {
         return tokenUris[tokenId];
     }
 
@@ -136,24 +162,35 @@ contract SelfyProfile is ERC721, AccessControl {
         revert RegularERC721TransferFromAreNotAllowed();
     }
 
-    function safeTransferFrom(address, address, uint256) public virtual override {
+    function safeTransferFrom(
+        address,
+        address,
+        uint256
+    ) public virtual override {
         revert RegularERC721SafeTransferFromAreNotAllowed();
     }
 
-    function safeTransferFrom(address, address, uint256, bytes memory)
-    public
-    virtual
-    override
-    {
+    function safeTransferFrom(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public virtual override {
         revert RegularERC721SafeTransferFromAreNotAllowed();
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
-        return ERC721.supportsInterface(interfaceId) ||  AccessControl.supportsInterface(interfaceId) ;
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC721, AccessControl) returns (bool) {
+        return
+            ERC721.supportsInterface(interfaceId) ||
+            AccessControl.supportsInterface(interfaceId);
     }
 
     // Update the BaseUri
-    function setBaseURI(string memory baseURI_) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setBaseURI(
+        string memory baseURI_
+    ) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         baseURI = baseURI_;
     }
 }
