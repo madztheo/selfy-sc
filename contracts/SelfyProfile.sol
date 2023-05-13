@@ -64,8 +64,9 @@ contract SelfyProfile is ERC721, AccessControl {
             balanceOf(recipient) == 0,
             "SelfyProfile: You already have a SelfyProfile"
         );
-        uint256 tokenId = _tokenIdCounter.current();
+        // Before tokenId declaration to start at 1
         _tokenIdCounter.increment();
+        uint256 tokenId = _tokenIdCounter.current();
         background[tokenId] = 0;
         body[tokenId] = 13;
         accessory[tokenId] = 100;
