@@ -72,7 +72,7 @@ contract SelfyProfile is ERC721, AccessControl {
         accessory[tokenId] = 100;
         head[tokenId] = 0;
         glasses[tokenId] = 7;
-        ownerToTokenId[recipient] = tokenId;
+        setURI(tokenId);
         _safeMint(recipient, tokenId);
     }
 
@@ -102,20 +102,7 @@ contract SelfyProfile is ERC721, AccessControl {
             glasses[tokenId] = getTraits(glasses[tokenId], MAX_GLASSES);
         }
 
-        tokenUris[tokenId] = string(
-            abi.encodePacked(
-                baseURI,
-                head[tokenId],
-                "&background=",
-                background[tokenId],
-                "&body=",
-                body[tokenId],
-                "&accessory=",
-                accessory[tokenId],
-                "&glasses=",
-                glasses[tokenId]
-            )
-        );
+        setURI(tokenId);
 
         emit MetadataUpdate(tokenId); // To be compatible with the EIP-4906 : https://docs.opensea.io/docs/metadata-standards
     }
@@ -134,6 +121,23 @@ contract SelfyProfile is ERC721, AccessControl {
             block.timestamp +
             block.number +
             (_tokenIdCounter.current() % maxTraits);
+    }
+
+    function setURI(uint256 _tokenId) internal virtual {
+        tokenUris[_tokenId] = string(
+            abi.encodePacked(
+                baseURI,
+                head[tokenId],
+                "&background=",
+                background[tokenId],
+                "&body=",
+                body[tokenId],
+                "&accessory=",
+                accessory[tokenId],
+                "&glasses=",
+                glasses[tokenId]
+            )
+        );
     }
 
     //Update the mapping badgeIdToTraits
