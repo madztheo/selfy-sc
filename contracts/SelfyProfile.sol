@@ -73,6 +73,7 @@ contract SelfyProfile is ERC721, AccessControl {
         head[tokenId] = 0;
         glasses[tokenId] = 7;
         setURI(tokenId);
+        ownerToTokenId[recipient] = tokenId;
         _safeMint(recipient, tokenId);
     }
 
