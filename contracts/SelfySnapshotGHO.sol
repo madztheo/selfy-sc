@@ -30,12 +30,16 @@ contract SelfySnapshotGHO is ERC721, AccessControl {
         @param data: URI for the token
         @param _amountOfGHO: Amount of GHO to pay
      */
-    function mint(string memory data, uint256 _amountOfGHO) payable public onlyRole(MINTER_ROLE) {
+    function mint(string memory data, uint256 _amountOfGHO) payable public {
         require(_amountOfGHO >= mintPrice, "Not enough ether sent");
         ghoToken.transferFrom(msg.sender, address(this), _amountOfGHO);
         _tokenIdCounter.increment();
         uint256 tokenId = _tokenIdCounter.current();
         _mint(msg.sender, tokenId);
+    }
+
+    // Function to set the URI
+    function setURI(uint256 tokenId, string memory data) public onlyRole(MINTER_ROLE) {
         tokenUris[tokenId] = data;
     }
 

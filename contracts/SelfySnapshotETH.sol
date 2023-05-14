@@ -27,11 +27,15 @@ contract SelfySnapshotETH is ERC721, AccessControl {
         @notice Mint your token and keep it forever
         @param data: URI for the token
      */
-    function mint(string memory data) payable public onlyRole(MINTER_ROLE) {
+    function mint(string memory data) payable public {
         require(msg.value >= mintPrice, "Not enough ether sent");
         _tokenIdCounter.increment();
         uint256 tokenId = _tokenIdCounter.current();
         _mint(msg.sender, tokenId);
+    }
+
+    // Function to set the URI
+    function setURI(uint256 tokenId, string memory data) public onlyRole(MINTER_ROLE) {
         tokenUris[tokenId] = data;
     }
 
