@@ -22,14 +22,47 @@ const config: HardhatUserConfig = {
       url: process.env.RPC_URL,
       accounts: [process.env.PRIVATE_KEY || ""],
     },
+    gnosis: {
+      url: "https://rpc.gnosischain.com",
+      accounts: [process.env.PRIVATE_KEY || ""],
+    },    
+    scrollAlpha: {
+      url: "https://alpha-rpc.scroll.io/l2" || "",
+      accounts: [process.env.PRIVATE_KEY || ""],
+    },
+    linea: {
+      url: `https://rpc.goerli.linea.build/`,
+      accounts: [process.env.PRIVATE_KEY || ""],
+    },     
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY || "",
-  },
-  contractSizer: {
-    disambiguatePaths: false,
-    runOnCompile: true,
-    strict: true,
+    apiKey: {
+      scrollAlpha: 'abc',
+      gnosis: 'your key',     
+    },
+    customChains: [
+      {
+        network: 'scrollAlpha',
+        chainId: 534353,
+        urls: {
+          apiURL: 'https://blockscout.scroll.io/api',
+          browserURL: 'https://blockscout.scroll.io/',
+        },
+      },
+      {
+        network: "gnosis",
+        chainId: 100,
+        urls: {
+          // // Select to what explorer verify the contracts
+          // Gnosisscan
+          apiURL: "https://api.gnosisscan.io/api",
+          browserURL: "https://gnosisscan.io/",
+          // Blockscout
+          //apiURL: "https://blockscout.com/xdai/mainnet/api",
+          //browserURL: "https://blockscout.com/xdai/mainnet",
+        },
+      },      
+    ],
   },
 };
 
