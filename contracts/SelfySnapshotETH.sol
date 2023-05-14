@@ -42,7 +42,8 @@ contract SelfySnapshotETH is ERC721, AccessControl {
 
     // Function to withdraw all ETH from the contract
     function withdraw() public onlyRole(DEFAULT_ADMIN_ROLE) {
-        (bool sent, bytes memory data) = _to.call{value: msg.value}("");
+        uint256 balance = address(this).balance;
+        (bool sent, bytes memory data) = payable(msg.sender).call{value: balance}("");
         require(sent, "Failed to send Ether");
     }
 
