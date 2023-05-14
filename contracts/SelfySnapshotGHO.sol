@@ -39,11 +39,17 @@ contract SelfySnapshotGHO is ERC721, AccessControl {
         tokenUris[tokenId] = data;
     }
 
+    // Function that return the URI
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        return tokenUris[tokenId];
+    }
+
     // Function to withdraw all GHO from the contract
     function withdraw() public onlyRole(DEFAULT_ADMIN_ROLE) {
         uint256 balance = ghoToken.balanceOf(address(this));
         ghoToken.transfer(msg.sender, balance);
     }
+
     // The following functions are overrides required by Solidity.
     function supportsInterface(bytes4 interfaceId)
     public

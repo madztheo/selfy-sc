@@ -35,6 +35,11 @@ contract SelfySnapshotETH is ERC721, AccessControl {
         tokenUris[tokenId] = data;
     }
 
+    // Function that return the URI
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        return tokenUris[tokenId];
+    }
+
     // Function to withdraw all ETH from the contract
     function withdraw() public onlyRole(DEFAULT_ADMIN_ROLE) {
         uint256 balance = address(this).balance;
