@@ -15,7 +15,6 @@ To deploy all the contract you need first to create a .env file by copy-paste th
 And then you can deploy the contract with the following command :
 ```shell
 
-```shell
 # Deoploy of SelfyProfile.sol + SelfyBadge.sol
 npx hardhat scripts/deploy.js --network gnosis
 
