@@ -5,6 +5,7 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract SelfyProfile is ERC721, AccessControl {
     using Counters for Counters.Counter;
@@ -125,19 +126,17 @@ contract SelfyProfile is ERC721, AccessControl {
     }
 
     function setURI(uint256 _tokenId) internal virtual {
-        tokenUris[_tokenId] = string(
-            abi.encodePacked(
-                baseURI,
-                head[_tokenId],
-                "&background=",
-                background[_tokenId],
-                "&body=",
-                body[_tokenId],
-                "&accessory=",
-                accessory[_tokenId],
-                "&glasses=",
-                glasses[_tokenId]
-            )
+        tokenUris[_tokenId] = string.concat(
+            baseURI,
+            Strings.toString(head[_tokenId]),
+            "&background=",
+            Strings.toString(background[_tokenId]),
+            "&body=",
+            Strings.toString(body[_tokenId]),
+            "&accessory=",
+            Strings.toString(accessory[_tokenId]),
+            "&glasses=",
+            Strings.toString(glasses[_tokenId])
         );
     }
 
@@ -189,8 +188,8 @@ contract SelfyProfile is ERC721, AccessControl {
         bytes4 interfaceId
     ) public view virtual override(ERC721, AccessControl) returns (bool) {
         return
-            ERC721.supportsInterface(interfaceId) ||
-            AccessControl.supportsInterface(interfaceId);
+        ERC721.supportsInterface(interfaceId) ||
+        AccessControl.supportsInterface(interfaceId);
     }
 
     // Update the BaseUri
