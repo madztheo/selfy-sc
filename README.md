@@ -7,7 +7,9 @@ We have :
     - SelfyBadge.sol : Selfy Badge, is the ERC721 contract that contain the SBT badge, proof of action, NFT of the user
     - SelfySnapshotETH.sol ou SelfySnapshotGHO.sol : Selfy Snapshot is the contract that let you mint forever your profile picture and sell it or show them an achievement.
 
-Made using Sismo and Nouns API.
+Made using Sismo, Aave GHO Token and Nouns API.
+🎭👻⌐◨-◨
+
 
 ## How to deploy ?
 
