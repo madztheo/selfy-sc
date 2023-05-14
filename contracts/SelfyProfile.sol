@@ -127,15 +127,15 @@ contract SelfyProfile is ERC721, AccessControl {
         tokenUris[_tokenId] = string(
             abi.encodePacked(
                 baseURI,
-                head[tokenId],
+                head[_tokenId],
                 "&background=",
-                background[tokenId],
+                background[_tokenId],
                 "&body=",
-                body[tokenId],
+                body[_tokenId],
                 "&accessory=",
-                accessory[tokenId],
+                accessory[_tokenId],
                 "&glasses=",
-                glasses[tokenId]
+                glasses[_tokenId]
             )
         );
     }
