@@ -10,12 +10,12 @@ contract SelfySnapshotETH is ERC721, AccessControl {
 
     Counters.Counter private _tokenIdCounter;
 
+    // Role used to mint tokens and update URI
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-
 
     // TokenId => URI
     mapping(uint256 => string) public tokenUris;
-    // Mint price in GHO
+    // Mint price in ETH
     uint256 public constant mintPrice = 0.01 ether;
 
     constructor() ERC721("SelfySnapshotETH", "SSE") {
@@ -42,17 +42,12 @@ contract SelfySnapshotETH is ERC721, AccessControl {
 
     // Function to withdraw all ETH from the contract
     function withdraw() public onlyRole(DEFAULT_ADMIN_ROLE) {
-        uint256 balance = address(this).balance;
-        payable(msg.sender).transfer(balance);
+        (bool sent, bytes memory data) = _to.call{value: msg.value}("");
+        require(sent, "Failed to send Ether");
     }
 
     // The following functions are overrides required by Solidity.
-    function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    override(ERC721, AccessControl)
-    returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

@@ -11,6 +11,7 @@ contract SelfySnapshotGHO is ERC721, AccessControl {
 
     Counters.Counter private _tokenIdCounter;
 
+    // Role used to mint tokens and update URI
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     IERC20 public  ghoToken;
@@ -50,13 +51,9 @@ contract SelfySnapshotGHO is ERC721, AccessControl {
         ghoToken.transfer(msg.sender, balance);
     }
 
+
     // The following functions are overrides required by Solidity.
-    function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    override(ERC721, AccessControl)
-    returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
