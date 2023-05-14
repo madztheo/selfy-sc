@@ -36,10 +36,6 @@ contract SelfySnapshotGHO is ERC721, AccessControl {
         _tokenIdCounter.increment();
         uint256 tokenId = _tokenIdCounter.current();
         _mint(msg.sender, tokenId);
-    }
-
-    // Function to set the URI
-    function setURI(uint256 tokenId, string memory data) public onlyRole(MINTER_ROLE) {
         tokenUris[tokenId] = data;
     }
 
