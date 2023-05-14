@@ -16,7 +16,7 @@ contract SelfySnapshotETH is ERC721, AccessControl {
     // TokenId => URI
     mapping(uint256 => string) public tokenUris;
     // Mint price in GHO
-    uint256 public constant mintPrice = 50 ether;
+    uint256 public constant mintPrice = 0.01 ether;
 
     constructor() ERC721("SelfySnapshotETH", "SSE") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
