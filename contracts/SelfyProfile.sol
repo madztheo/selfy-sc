@@ -119,10 +119,10 @@ contract SelfyProfile is ERC721, AccessControl {
         uint256 maxTraits
     ) internal view returns (uint256) {
         return
-            actualTokenId +
+            (actualTokenId +
             block.timestamp +
             block.number +
-            (_tokenIdCounter.current() % maxTraits);
+            _tokenIdCounter.current()) % maxTraits;
     }
 
     function setURI(uint256 _tokenId) internal virtual {
